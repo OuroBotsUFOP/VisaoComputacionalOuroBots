@@ -6,7 +6,7 @@ from cv2.typing import MatLike
 
 
 # Encontra as mascaras para cada cor, utilizando dilate para preencher pequenas falhas
-def preprocess_mascara_cores(frame: np.ndarray, mascaras: Sequence[tuple[MatLike, MatLike]]) -> Sequence[cv2.Mat]:
+def preprocess_mascara_cores(frame: np.ndarray, mascaras: Sequence[tuple[MatLike, MatLike]]) -> list[cv2.Mat]:
 
     # Caixa de 1's que desliza sobre a imagem
     kernel = np.ones((5,5), "uint8")

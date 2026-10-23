@@ -5,6 +5,7 @@ import math
 from video import VideoStream
 from detector import CircleDetector
 from preprocessing import preprocess_frame_cinza, preprocess_mascara_cores
+from robo import Robo
 
 def main():
     stream = VideoStream(source= 0)
@@ -47,6 +48,7 @@ def main():
         coord_D = None
 
         mascara_frente, mascara_esq, mascara_dir = preprocess_mascara_cores(imageFrame, lista_mascaras)
+        list_masks = [mascara_frente, mascara_esq, mascara_dir]
 
         frame = preprocess_frame_cinza(imageFrame)
 
@@ -54,33 +56,7 @@ def main():
         circulos = circle_detector.detect(frame)
 
         if circulos is not None:
-            for (x, y, raio) in circulos:    
-                # Cria a "caixa" imaginária de 10x10 píxeis no centro do círculo encontrado
-                y_min = max(0, y - 5)
-                y_max = min(imageFrame.shape[0], y + 5)
-                x_min = max(0, x - 5)
-                x_max = min(imageFrame.shape[1], x + 5)
-        
-                # Recorta esse pequeno quadrado das três máscaras
-                area_frente = mascara_frente[y_min:y_max, x_min:x_max]
-                area_esq = mascara_esq[y_min:y_max, x_min:x_max]
-                area_dir = mascara_dir[y_min:y_max, x_min:x_max]
-                    
-                # Testa a qual máscara este círculo pertence e SALVA a coordenada
-                if cv2.countNonZero(area_frente) > 0:
-                    coord_F = (x, y) 
-                    cv2.circle(imageFrame, (x, y), raio, (255, 0, 255), 2)
-                    cv2.putText(imageFrame, "F", (x - 10, y - raio - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 255), 2)
-                    
-                elif cv2.countNonZero(area_esq) > 0:
-                    coord_E = (x, y) 
-                    cv2.circle(imageFrame, (x, y), raio, (255, 0, 0), 2)
-                    cv2.putText(imageFrame, "E", (x - 10, y - raio - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
-                        
-                elif cv2.countNonZero(area_dir) > 0:
-                    coord_D = (x, y)
-                    cv2.circle(imageFrame, (x, y), raio, (0, 255, 0), 2)
-                    cv2.putText(imageFrame, "D", (x - 10, y - raio - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+            coord_F, coord_E, coord_D = circle_detector.find_circle_pos(imageFrame, list_masks, circulos)
 
 
         # ==========================================
