@@ -10,6 +10,7 @@ from robo import Robo
 def main():
     stream = VideoStream(source= 0)
     circle_detector = CircleDetector(dp= 1.3, minDist= 110, param1= 50, param2 = 80, minRadius= 40, maxRadius= 130)
+    robo = Robo()
 
     fov_camera = 70 # graus
     distancia_focal = 14.67 # cm
@@ -52,7 +53,6 @@ def main():
 
         frame = preprocess_frame_cinza(imageFrame)
 
-
         circulos = circle_detector.detect(frame)
 
         if circulos is not None:
@@ -64,41 +64,10 @@ def main():
         # ==========================================
         # Só calcula a matemática se o computador encontrou as 3 tags do robô neste frame
         if coord_F and coord_E and coord_D:
-                       
-            # Centro do triangulo formado pelos 3 circulos
-            centro_x_triangulo = int((coord_F[0] + coord_D[0] + coord_E[0])/3)
-            centro_y_triangulo = int((coord_F[1] + coord_D[1] + coord_E[1])/3)
-            centro_robo = (centro_x_triangulo, centro_y_triangulo)
-        
-            # Calcula a diferença (Delta) entre o centro do robô e a etiqueta da Frente
-            dx = coord_F[0] - centro_x_triangulo
-            dy = coord_F[1] - centro_y_triangulo
-        
-            # Calcula o ângulo em graus de para onde o robô está virado
-            angulo_rad = math.atan2(dy, dx)
-            angulo_graus = math.degrees(angulo_rad)
-                         
-            # Extrai os valores finais em centímetros
-            pos_x = (2 * distancia_focal * math.tan(fov_camera/2))*(centro_x_triangulo/ stream.width)
-            pos_y = (2 * distancia_focal * math.tan(fov_camera/2))*(centro_y_triangulo/ stream.heigh)
-               
-        
-            # Coordenadas
-            print(f"Robô | Px: ({centro_x_triangulo}, {centro_y_triangulo}) | Real: X={pos_x:.1f}cm, Y={pos_y:.1f}cm | {angulo_graus:.1f}°")
-            print(f"base_timestamp: {stream.base_timestamp:.2f} | timestamp: {stream.timestamp:.2f} | difference {((stream.timestamp - stream.base_timestamp) if stream.base_timestamp is not None else stream.timestamp):.2f}")
-            print("-" * 50)
 
-            # --- Desenho visual para confirmar que a matemática funcionou ---
-            # Desenha um ponto branco no meio do robô
-            cv2.circle(imageFrame, centro_robo, 5, (255, 255, 255), -1)
-                    
-            # Desenha a SETA amarela apontando para frente
-            cv2.arrowedLine(imageFrame, centro_robo, coord_F, (0, 255, 255), 3, tipLength=0.2)
-                    
-            # Mostra o valor do ângulo, pixels e a posição REAL no canto da tela
-            cv2.putText(imageFrame, f"Angulo: {angulo_graus:.1f} graus", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-            cv2.putText(imageFrame, f"Px: ({centro_x_triangulo}, {centro_y_triangulo})", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-            cv2.putText(imageFrame, f"Real: X={pos_x:.1f}cm Y={pos_y:.1f}cm", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+            robo.find_pos(coord_F, coord_D, coord_E, distancia_focal, fov_camera, stream.width, stream.heigh)
+                
+            stream.show_robo_info_frame(imageFrame, robo, coord_F)
 
 
         # Exibe a janela
