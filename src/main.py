@@ -1,11 +1,14 @@
 import cv2
 import numpy as np
 import math
+import sys
 
 from video import VideoStream
 from detector import CircleDetector
 from preprocessing import preprocess_frame_cinza, preprocess_mascara_cores
 from robo import Robo
+
+i = 0
 
 def main():
     stream = VideoStream(source= 0)
@@ -35,6 +38,7 @@ def main():
         (esq_inf, esq_sup),
         (dir_inf, dir_sup)
     ]
+    i = 0
 
     while True:
         sucesso, imageFrame = stream.read()
@@ -64,10 +68,20 @@ def main():
         # ==========================================
         # Só calcula a matemática se o computador encontrou as 3 tags do robô neste frame
         if coord_F and coord_E and coord_D:
-
             robo.find_pos(coord_F, coord_D, coord_E, distancia_focal, fov_camera, stream.width, stream.heigh)
                 
-            stream.show_robo_info_frame(imageFrame, robo, coord_F)
+            #stream.show_robo_info_frame(imageFrame, robo, coord_F)
+            infos = {
+                "x_pixel": robo.x_pixel,
+                "y_pixel": robo.y_pixel,
+                "x_real": robo.x_real,
+                "y_real": robo.y_real,
+                "angulo_graus": robo.angulo_graus,
+                "timestamp": (((stream.timestamp - stream.base_timestamp) if stream.base_timestamp is not None else stream.timestamp))
+            }
+            print(f"{infos}", flush=True)
+
+
 
 
         # Exibe a janela
